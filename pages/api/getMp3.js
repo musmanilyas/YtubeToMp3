@@ -28,7 +28,7 @@ router.get(async (req, res) => {
     }).pipe(res);
   } catch (error) {
     console.error("Error downloading video:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error", message: error });
   }
 });
 
