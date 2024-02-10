@@ -1,6 +1,6 @@
 import ytdl from "ytdl-core";
 import { createRouter } from "next-connect";
-
+import zlib from "zlib";
 const router = createRouter();
 
 router.get(async (req, res) => {
@@ -22,10 +22,25 @@ router.get(async (req, res) => {
     res.setHeader("Content-Type", "audio/mpeg");
 
     // Stream the audio in chunks
-    ytdl(url.toString(), {
+    const videoStream = ytdl(url.toString(), {
       format: "mp3",
       quality: "highestaudio",
-    }).pipe(res);
+    });
+
+    // Pipe the video stream to the response
+    videoStream
+      .on("data", (chunk) => {
+        res.write(chunk);
+      })
+      .on("end", () => {
+        res.end();
+      })
+      .on("error", (error) => {
+        console.error("Error streaming video:", error);
+        res
+          .status(500)
+          .json({ error: "Internal server error", message: error });
+      });
   } catch (error) {
     console.error("Error downloading video:", error);
     res.status(500).json({ error: "Internal server error", message: error });
